@@ -1,0 +1,36 @@
+﻿@model IEnumerable<FourSquare.SharpSquare.Entities.Venue>
+
+@{
+    <div id="item-container">
+
+        @if (Model != null && !Model.Any())
+        {
+            <div class="col-sm-12 item-to-hide">
+                <img class="center-block no-result" src="~/Content/img/no-result.png" />
+            </div>
+        }
+
+        @foreach (var venue in Model)
+        {
+            <div class="col-md-6 col-lg-4 item-to-hide">
+                <div class="element-item invisible" onclick="window.open('https://foursquare.com/v/' + '@venue.id', '_blank')">
+                    @{
+            var venueCategory = venue.categories.FirstOrDefault();
+            var iconUrl = venueCategory != null ? venueCategory.icon.prefix + "bg_88.png" : String.Empty; // or link to empty image
+                    }
+                    <img src="@iconUrl" />
+                    <h2>@venue.name</h2>
+                    <div class="venue-info">
+                        <p>Total checkins: @venue.stats.checkinsCount</p>
+                        <p>Users right now: @venue.hereNow.count</p>
+                    </div>
+                </div>
+
+            </div>
+        }
+    </div>
+}
+
+<script>
+    sameQueryValuesCount = '@ViewBag.SameQueryValuesCount';
+</script>

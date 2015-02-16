@@ -1,0 +1,130 @@
+﻿
+
+<div class="row">
+    <div class="col-sm-6 col-sm-offset-3">
+        <form id="search-venue-form" onsubmit="SearchVenueFormSubmit(); return false;">
+            <div class="input-group input-group-lg">
+                <input id="searchValue" name="value" type="text" class="form-control" placeholder="Search awesome venues..." />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-lg btn-info">
+                        <span class="glyphicon glyphicon-search"></span>
+                    </button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-6 col-sm-offset-3 under-search-message">
+        <img id="loading-animation" class="center-block" src="~/Content/img/loader.GIF" />
+        <div class="center-block">
+            <div id="same-query-values-count" style="display:none">
+                <p></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr>
+
+<div id="venue-list-placeholder">
+    
+</div>
+
+
+@section scripts {
+ 
+    <script>
+
+        var sameQueryValuesCount = 0;
+
+        function GetLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(SavePosition);
+            };
+        }
+
+        var latitude = "";
+        var longitude = "";
+
+        function SavePosition(position) {
+            latitude = position.coords.latitude;
+            longitude = position.coords.longitude;
+        }
+
+
+        $(document).ready(function() {
+            $("#loading-animation").hide();
+            GetLocation();
+        });
+
+        function StartProcessing() {
+            $("#same-query-values-count").hide();
+            $("#loading-animation").show();
+            processsing = true;
+        }
+
+        function StopProcessing() {
+            processsing = false;
+            $("#loading-animation").hide();
+        }
+
+        function LastItemLoaded() {
+            StopProcessing();
+
+            $("#same-query-values-count p").html('Total search count of this venue: ' + sameQueryValuesCount + '');
+            $("#same-query-values-count").fadeIn("slow");
+        }
+
+        var processsing = false;
+
+        function SearchVenueFormSubmit() {
+            if (!processsing) {
+                StartProcessing();
+                HideEffect();
+                AjaxCall('@Url.Action("SearchVenues")', { Value: $("#searchValue").val(), Latitude: latitude, Longitude: longitude })
+                    .success(function(result) {
+                        $("#venue-list-placeholder").html(result);
+                        ShowEffect();
+                    })
+                    .error(function() {
+                        StopProcessing();
+                    });
+            }
+        }
+
+        function ShowElement($element, isLast) {
+            if (isLast === undefined) isLast = false;
+            $element.removeClass("invisible").hide().show("drop", { percent: 100 }, 200,
+                function() {
+                    $('.isotope').isotope('layout');
+                    if (isLast) LastItemLoaded();
+                });
+        }
+
+        function ShowEffect() {
+            var i = 0;
+            var n = 150;
+            var total = $(".invisible").length;
+            if (total == 0)
+                LastItemLoaded();
+            $(".invisible").each(function(index) {
+                var $thisObject = $(this);
+                if (index === total - 1) {
+                    setTimeout(function() { ShowElement($thisObject, true); }, n * i);
+                } else {
+                    setTimeout(function() { ShowElement($thisObject); }, n * i);
+                }
+                i++;
+            });
+        }
+
+        function HideEffect() {
+            $(".item-to-hide").each(function () {
+                $(this).hide("blind", {}, 200);
+            });
+        }
+
+    </script>
+}
